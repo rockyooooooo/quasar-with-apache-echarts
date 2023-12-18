@@ -31,6 +31,14 @@
           map-options
           @update:model-value="onGroupingByChange"
         />
+        <q-select
+          v-model="chartMode"
+          :options="chartModeOptions"
+          label="Chart Mode"
+          emit-value
+          map-options
+          @update:model-value="onChartModeChange"
+        />
       </q-card-section>
     </q-card>
 
@@ -89,6 +97,18 @@ function onGroupingByChange (value) {
   setChartData(chartData)
 
   drawChart(xAxisData, chartData)
+}
+
+const chartMode = ref('group')
+const chartModeOptions = [
+  { label: 'Group', value: 'group' },
+  { label: 'Stack', value: 'stack' }
+]
+function onChartModeChange (value) {
+  const chartData = prepareChartData(aggregatedData.value, value)
+  setChartData(chartData)
+
+  drawChart(xAxisData.value, chartData)
 }
 
 /**
@@ -198,14 +218,16 @@ function genXAxisData (aggregatedData) {
  *
  * @param {Object} aggregatedData - The aggregated data to be prepared.
  *  Each key-value pair represents a group of aggregated data.
+ * @param {string} chartMode - The chart mode.
  *
  * @returns {Array} The prepared chart data. Each element is an object representing a series in the bar chart.
  */
-function prepareChartData (aggregatedData) {
+function prepareChartData (aggregatedData, chartMode) {
   const chartData = Object.entries(aggregatedData).map(([key, value]) => {
     return {
       name: key,
       type: 'bar',
+      stack: chartMode === 'stack' ? 'user' : null,
       data: value.map((item) => item.bps)
     }
   })
@@ -265,19 +287,32 @@ function upload () {
   }
 }
 
+const option = {
+  title: {
+    // text: 'ECharts Getting Started Example'
+  },
+  tooltip: {},
+  legend: {
+    // Try 'horizontal'
+    orient: 'vertical',
+    right: 10,
+    top: 'center'
+  },
+  xAxis: {
+    data: []
+  },
+  yAxis: {},
+  series: []
+}
+
 function drawChart (xAxisData, chartData) {
   try {
     // FIXME: Redraw the chart will not just update the chart data, seems like it will append data to the chart.
     // Draw the chart
     myChart.setOption({
-      title: {
-        // text: 'ECharts Getting Started Example'
-      },
-      tooltip: {},
       xAxis: {
         data: xAxisData
       },
-      yAxis: {},
       series: chartData
     })
   } catch (error) {
@@ -287,6 +322,7 @@ function drawChart (xAxisData, chartData) {
 
 onMounted(() => {
   myChart = echarts.init(document.getElementById('chart'))
+  myChart.setOption(option)
 })
 
 onRenderTracked((event) => {
