@@ -44,7 +44,7 @@
 
     <div
       id="chart"
-      style="width: 600px; height: 400px;"
+      style="width: 100vw; height: 100vh;"
     />
   </div>
 </template>
@@ -76,6 +76,7 @@ function onGranularityChange (value) {
   const chartData = prepareChartData(aggregatedData)
   setChartData(chartData)
 
+  myChart.clear()
   drawChart(xAxisData, chartData)
 }
 
@@ -96,6 +97,7 @@ function onGroupingByChange (value) {
   const chartData = prepareChartData(aggregatedData)
   setChartData(chartData)
 
+  myChart.clear()
   drawChart(xAxisData, chartData)
 }
 
@@ -287,32 +289,28 @@ function upload () {
   }
 }
 
-const option = {
-  title: {
-    // text: 'ECharts Getting Started Example'
-  },
-  tooltip: {},
-  legend: {
-    // Try 'horizontal'
-    orient: 'vertical',
-    right: 10,
-    top: 'center'
-  },
-  xAxis: {
-    data: []
-  },
-  yAxis: {},
-  series: []
-}
-
 function drawChart (xAxisData, chartData) {
   try {
-    // FIXME: Redraw the chart will not just update the chart data, seems like it will append data to the chart.
     // Draw the chart
     myChart.setOption({
+      title: {
+        // text: 'ECharts Getting Started Example'
+      },
+      tooltip: {},
+      legend: {
+        // Try 'horizontal'
+        orient: 'vertical',
+        right: 10,
+        top: 'center',
+        selected: chartData.reduce((result, currentValue, index) => {
+          result[currentValue.name] = index < 5
+          return result
+        }, {})
+      },
       xAxis: {
         data: xAxisData
       },
+      yAxis: {},
       series: chartData
     })
   } catch (error) {
@@ -322,7 +320,6 @@ function drawChart (xAxisData, chartData) {
 
 onMounted(() => {
   myChart = echarts.init(document.getElementById('chart'))
-  myChart.setOption(option)
 })
 
 onRenderTracked((event) => {
