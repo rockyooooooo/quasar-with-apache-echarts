@@ -39,6 +39,11 @@
           map-options
           @update:model-value="onChartModeChange"
         />
+        <q-input
+          v-model.number="maxLegendNum"
+          label="Max Legend Num"
+          @update:model-value="onMaxLegendNumChange"
+        />
       </q-card-section>
     </q-card>
 
@@ -51,6 +56,7 @@
 
 <script setup>
 import { onMounted, onRenderTracked, onRenderTriggered, ref } from 'vue'
+import { debounce } from 'quasar'
 import * as echarts from 'echarts'
 import dayjs from 'dayjs'
 
@@ -73,7 +79,7 @@ function onGranularityChange (value) {
   setAggregatedData(aggregatedData)
   const xAxisData = genXAxisData(aggregatedData)
   setXAsisData(xAxisData)
-  const chartData = prepareChartData(aggregatedData)
+  const chartData = prepareChartData(aggregatedData, chartMode.value, maxLegendNum.value)
   setChartData(chartData)
 
   myChart.clear()
@@ -94,7 +100,7 @@ function onGroupingByChange (value) {
   setAggregatedData(aggregatedData)
   const xAxisData = genXAxisData(aggregatedData)
   setXAsisData(xAxisData)
-  const chartData = prepareChartData(aggregatedData)
+  const chartData = prepareChartData(aggregatedData, chartMode.value, maxLegendNum.value)
   setChartData(chartData)
 
   myChart.clear()
@@ -107,11 +113,20 @@ const chartModeOptions = [
   { label: 'Stack', value: 'stack' }
 ]
 function onChartModeChange (value) {
-  const chartData = prepareChartData(aggregatedData.value, value)
+  const chartData = prepareChartData(aggregatedData.value, value, maxLegendNum.value)
   setChartData(chartData)
 
   drawChart(xAxisData.value, chartData)
 }
+
+const maxLegendNum = ref(10)
+const onMaxLegendNumChange = debounce((value) => {
+  const chartData = prepareChartData(aggregatedData.value, chartMode.value, value)
+  setChartData(chartData)
+
+  myChart.clear()
+  drawChart(xAxisData.value, chartData)
+}, 1000)
 
 /**
  * Parses the input file text and returns an array of objects representing the data.
@@ -224,8 +239,8 @@ function genXAxisData (aggregatedData) {
  *
  * @returns {Array} The prepared chart data. Each element is an object representing a series in the bar chart.
  */
-function prepareChartData (aggregatedData, chartMode) {
-  const chartData = Object.entries(aggregatedData).map(([key, value]) => {
+function prepareChartData (aggregatedData, chartMode, maxLegendNum = 10) {
+  const chartData = Object.entries(aggregatedData).slice(0, maxLegendNum).map(([key, value]) => {
     return {
       name: key,
       type: 'bar',
@@ -279,7 +294,7 @@ function upload () {
       setAggregatedData(aggregatedData)
       const xAxisData = genXAxisData(aggregatedData)
       setXAsisData(xAxisData)
-      const chartData = prepareChartData(aggregatedData)
+      const chartData = prepareChartData(aggregatedData, chartMode.value, maxLegendNum.value)
       setChartData(chartData)
 
       drawChart(xAxisData, chartData)
