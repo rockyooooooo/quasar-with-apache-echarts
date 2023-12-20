@@ -325,7 +325,22 @@ function drawChart (xAxisData, chartData) {
       xAxis: {
         data: xAxisData
       },
-      yAxis: {},
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          formatter: function (value, index) {
+            // bps to kbps or mbps or gbps and so on...
+            const units = ['bps', 'kbps', 'mbps', 'gbps', 'tbps']
+            let unitIndex = 0
+            let adjustedValue = value
+            while (adjustedValue >= 1000) {
+              adjustedValue /= 1000
+              unitIndex++
+            }
+            return `${adjustedValue.toFixed(2)} ${units[unitIndex]}`
+          }
+        }
+      },
       series: chartData
     })
   } catch (error) {
