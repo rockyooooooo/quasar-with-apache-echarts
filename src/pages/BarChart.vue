@@ -1,55 +1,89 @@
 <template>
-  <div class="flex flex-center full-height">
-    <q-card style="width: 500px;">
+  <div
+    ref="form"
+    class="flex flex-center"
+    style="height: 100vh;"
+  >
+    <q-card
+      style="width: 500px;"
+    >
       <q-card-section>Bar Chart</q-card-section>
       <q-card-section>
-        <q-file
-          v-model="file"
-          label="Pick one file"
-          filled
-          clearable
-          style="max-width: 300px"
-        />
-        <q-btn
-          color="primary"
-          label="Upload"
-          @click="upload"
-        />
-        <q-select
-          v-model="granularity"
-          :options="granularityOptions"
-          label="Granularity"
-          emit-value
-          map-options
-          @update:model-value="onGranularityChange"
-        />
-        <q-select
-          v-model="groupingBy"
-          :options="groupingByOptions"
-          label="Group By"
-          emit-value
-          map-options
-          @update:model-value="onGroupingByChange"
-        />
-        <q-select
-          v-model="chartMode"
-          :options="chartModeOptions"
-          label="Chart Mode"
-          emit-value
-          map-options
-          @update:model-value="onChartModeChange"
-        />
-        <q-input
-          v-model.number="maxLegendNum"
-          label="Max Legend Num"
-          @update:model-value="onMaxLegendNumChange"
-        />
+        <q-item>
+          <q-file
+            v-model="file"
+            class="col-10"
+            label="Pick one file"
+            filled
+            clearable
+            style="max-width: 300px"
+          />
+          <q-btn
+            class="col on-right"
+            color="primary"
+            label="Upload"
+            @click="upload"
+          />
+        </q-item>
+        <q-item>
+          <q-select
+            v-model="granularity"
+            class="col"
+            :options="granularityOptions"
+            label="Granularity"
+            emit-value
+            map-options
+            @update:model-value="onGranularityChange"
+          />
+        </q-item>
+        <q-item>
+          <q-select
+            v-model="groupingBy"
+            class="col"
+            :options="groupingByOptions"
+            label="Group By"
+            emit-value
+            map-options
+            @update:model-value="onGroupingByChange"
+          />
+        </q-item>
+        <q-item>
+          <q-select
+            v-model="chartMode"
+            class="col"
+            :options="chartModeOptions"
+            label="Chart Mode"
+            emit-value
+            map-options
+            @update:model-value="onChartModeChange"
+          />
+        </q-item>
+        <q-item>
+          <q-input
+            v-model.number="maxLegendNum"
+            class="col"
+            label="Max Legend Num"
+            @update:model-value="onMaxLegendNumChange"
+          />
+        </q-item>
       </q-card-section>
     </q-card>
+  </div>
 
+  <div
+    class="bg-grey-1 flex flex-center"
+  >
     <div
       id="chart"
-      style="width: 100vw; height: 100vh;"
+      ref="chart"
+      style="width: 50rem; height: calc(100vh - 50px);"
+    />
+
+    <q-btn
+      class="absolute-bottom-right q-ma-md"
+      rounded
+      icon="arrow_upward"
+      @click="scrollIntoView(form)"
     />
   </div>
 </template>
@@ -61,6 +95,13 @@ import * as echarts from 'echarts'
 import dayjs from 'dayjs'
 
 const BASE_GRANULARITY = 60 / 5 // 5 minutes
+
+const form = ref(null)
+const chart = ref(null)
+
+function scrollIntoView (element) {
+  element.scrollIntoView({ behavior: 'smooth' })
+}
 
 // Create the echarts instance
 let myChart = null
@@ -298,6 +339,7 @@ function upload () {
       setChartData(chartData)
 
       drawChart(xAxisData, chartData)
+      scrollIntoView(chart.value)
     }
 
     reader.readAsText(file.value)
